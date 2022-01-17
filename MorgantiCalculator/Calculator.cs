@@ -15,7 +15,7 @@ namespace MorgantiCalculator {
         float? previousOperation = null;
 
         int? oper = null;
-        Dictionary<int?, char> operMap = new Dictionary<int?, char>() {{0,'+'}, {1,'-'}, {2,'*'}, {3,'/'}, {4,'^'}, {5,'='}}; 
+        readonly Dictionary<int?, char> operMap = new Dictionary<int?, char>() {{0,'+'}, {1,'-'}, {2,'×'}, {3, '÷' }, {4,'^'}, {5,'='}}; 
 
         StringBuilder currentEntry = new StringBuilder();
 
@@ -29,21 +29,22 @@ namespace MorgantiCalculator {
         }
 
         private void btn_ce_Click(object sender, EventArgs e) {
-            previousOperation = null;
-            resetOutput();
+            if (previousOperation != null) {
+                resetAll();
+            }
+            else { 
+                resetOutput();
+            }
         }
 
         private void btn_c_Click(object sender, EventArgs e) {
-            previousOperation = null;
-            txt_prev.Text = "";
-            leftOperand = null;
-            rightOperand = null;
-            oper = null;
-            resetOutput();
+            resetAll();
         }
 
         private void btn_del_Click(object sender, EventArgs e) {
-            previousOperation = null;
+            if (previousOperation != null) {
+                resetAll();
+            }
             if (currentEntry.Length > 0) {
                 currentEntry.Remove(currentEntry.Length - 1, 1);
                 updateOutput();
@@ -53,20 +54,20 @@ namespace MorgantiCalculator {
             }
         }
 
-
-
-
-
         private void but_neg_Click(object sender, EventArgs e) {
-            previousOperation = null;
+            if (previousOperation != null) {
+                float? holder = previousOperation;
+                resetAll();
+                if (holder != 0) {
+                    currentEntry.Append(holder.ToString());
+                }
+            }
             if (currentEntry.Length != 0 && currentEntry[0] != 0) {
-                if (leftOperand == null) {
-                    if (currentEntry[0] != '-') {
-                        currentEntry.Insert(0, '-');
-                    }
-                    else if (currentEntry[0] == '-') {
-                        currentEntry.Remove(0, 1);
-                    }
+                if (currentEntry[0] != '-') {
+                    currentEntry.Insert(0, '-');
+                }
+                else if (currentEntry[0] == '-') {
+                    currentEntry.Remove(0, 1);
                 }
                 updateOutput();
             }
@@ -75,12 +76,7 @@ namespace MorgantiCalculator {
 
         private void btn_dec_Click(object sender, EventArgs e) {
             if (previousOperation != null) {
-                previousOperation = null;
-                leftOperand = null;
-                rightOperand = null;
-                oper = null;
-                currentEntry.Clear();
-                txt_prev.Text = "";
+                resetAll();
             }
             if (!currentEntry.ToString().Contains('.')) {
                 if (currentEntry.Length == 0) {
@@ -92,10 +88,11 @@ namespace MorgantiCalculator {
         }
 
         private void btn_equal_Click(object sender, EventArgs e) {
-
             // if the user presses equals immediately following a previous equals
             if (previousOperation != null) {
-                DoEquals();
+                if (oper != null) {
+                    DoEquals();
+                }
             }
             // if the user pressed equal when there's nothing
             else if (leftOperand == null && currentEntry.Length == 0) {
@@ -117,7 +114,6 @@ namespace MorgantiCalculator {
                 rightOperand = float.Parse(currentEntry.ToString());
                 DoEquals();
             }
-
         }
 
         private void DoEquals () {
@@ -136,49 +132,50 @@ namespace MorgantiCalculator {
             }
         }
 
-        
-
         private void btn_inv_Click(object sender, EventArgs e) {
 
         }
 
-
         private void btn_sqrt_Click(object sender, EventArgs e) {
 
         }
-
-
-
 
         private void btn_square_Click(object sender, EventArgs e) {
 
         }
 
         private void btn_power_Click(object sender, EventArgs e) {
-            ExecuteOperator('^', 4);
+            ExecuteOperator(4);
         }
 
         private void btn_div_Click(object sender, EventArgs e) {
-            ExecuteOperator('÷', 3);
+            ExecuteOperator(3);
         }
 
         private void btn_mult_Click(object sender, EventArgs e) {
-            ExecuteOperator('×', 2);
+            ExecuteOperator(2);
         }
 
         private void btn_sub_Click(object sender, EventArgs e) {
-            ExecuteOperator('-', 1);
+            ExecuteOperator(1);
         }
 
         private void btn_add_Click(object sender, EventArgs e) {
-            ExecuteOperator('+', 0);
+            ExecuteOperator(0);
         }
 
-        private void ExecuteOperator(char opSign, int opCode) {
+        private void ExecuteOperator(int opCode) {
             if (previousOperation != null) {
+                if (oper == null) {
+                    leftOperand = previousOperation;
+                }
                 previousOperation = null;
                 rightOperand = null;
                 currentEntry.Clear();
+            }
+
+            if (currentEntry.Length > 0 && currentEntry[currentEntry.Length-1] == '.') {
+                btn_del_Click(new object(), new EventArgs());
             }
 
             // Initial case where the user hasn't inputed anything yet
@@ -188,14 +185,14 @@ namespace MorgantiCalculator {
                 leftOperand = 0;
                 resetOutput();
 
-                txt_prev.Text = leftOperand.ToString() + " " + opSign;
+                txt_prev.Text = leftOperand.ToString() + " " + operMap[opCode];
             }
             // Case where the user has not entered anything new
             // Will update the operator
             else if (currentEntry.Length == 0 && leftOperand != null) {
                 oper = opCode;
 
-                txt_prev.Text = leftOperand.ToString() + " " + opSign;
+                txt_prev.Text = leftOperand.ToString() + " " + operMap[opCode];
             }
             // Case where the user has input some number and is the first operator pressed
             // Will store the operator and allow for new input
@@ -204,7 +201,7 @@ namespace MorgantiCalculator {
                 leftOperand = float.Parse(currentEntry.ToString());
                 currentEntry.Clear();
 
-                txt_prev.Text = leftOperand.ToString() + " " + opSign;
+                txt_prev.Text = leftOperand.ToString() + " " + operMap[opCode];
             }
             // Case where the user hits an operator a second time
             // Will execute the previous operator and return result
@@ -219,7 +216,7 @@ namespace MorgantiCalculator {
 
                 currentEntry.Clear();
                 txt_output.Text = retVal.ToString();
-                txt_prev.Text = leftOperand.ToString() + " " + opSign;
+                txt_prev.Text = leftOperand.ToString() + " " + operMap[opCode];
             }
         }
 
@@ -253,10 +250,10 @@ namespace MorgantiCalculator {
                     retVal = (float?)Math.Pow((double)leftOperand, (double)rightOperand);
                     break;
             }
-
             return retVal;
         }
 
+        #region Numbered Button Click Events
         private void btn_9_Click(object sender, EventArgs e) {
             addInput('9');
         }
@@ -294,10 +291,14 @@ namespace MorgantiCalculator {
         }
 
         private void btn_0_Click(object sender, EventArgs e) {
-            if (currentEntry.Length > 0) {
+            if (leftOperand != null && currentEntry.Length == 0) {
+                addInput('0');
+            }
+            else if (currentEntry.Length > 0 && (currentEntry[0] != '0' || currentEntry.ToString().Contains('.'))) {
                 addInput('0');
             }
         }
+        #endregion
 
         void Calculator_KeyPress(object sender, KeyPressEventArgs e) {
             if (e.KeyChar == '0')
@@ -321,6 +322,9 @@ namespace MorgantiCalculator {
         }
 
         private void addInput(char numb) {
+            if (previousOperation != null) {
+                resetAll();
+            }
             if (currentEntry.Length < 16) {
                 currentEntry.Append(numb);
             }
@@ -329,7 +333,7 @@ namespace MorgantiCalculator {
 
         private void updateOutput() {
             txt_output.Text = currentEntry.ToString();
-            if (currentEntry.Length == 1 && currentEntry[0] == '0') {
+            if (currentEntry.Length == 0) {
                 resetOutput();
             }
         }
@@ -339,5 +343,14 @@ namespace MorgantiCalculator {
             currentEntry.Clear();
         }
 
+        private void resetAll () {
+            previousOperation = null;
+            leftOperand = null;
+            rightOperand = null;
+            oper = null;
+            txt_prev.Text = "";
+            txt_output.Text = "0";
+            currentEntry.Clear();
+        }
     }
 }
