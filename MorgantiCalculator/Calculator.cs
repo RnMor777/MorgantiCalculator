@@ -141,6 +141,18 @@ namespace MorgantiCalculator {
         }
 
         private void btn_square_Click(object sender, EventArgs e) {
+            // Case where previousResult is still saved, will just run operation on that
+            if (previousOperation != null) {
+                rightOperand = null;
+                oper = null;
+                leftOperand = (float?)Math.Pow((double)previousOperation, 2);
+                txt_prev.Text = string.Format("sqr({0})", previousOperation.ToString());
+                txt_output.Text = leftOperand.ToString();
+                previousOperation = null;
+                currentEntry.Clear();
+                //currentEntry.Append(leftOperand.ToString());
+            }
+            // Case where user has not entered entered anything. The input is just a 0
 
         }
 
@@ -315,6 +327,8 @@ namespace MorgantiCalculator {
                 btn_div_Click(sender, e);
             else if (e.KeyChar == '^')
                 btn_power_Click(sender, e);
+            else if (e.KeyChar == '.')
+                btn_dec_Click(sender, e);
             else if ((int)e.KeyChar == 8)
                 btn_del_Click(sender, e);
             else if ((int)e.KeyChar == 27)
