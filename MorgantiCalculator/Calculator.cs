@@ -175,71 +175,66 @@ namespace MorgantiCalculator {
         }
 
         private void btn_inv_Click(object sender, EventArgs e) {
-            if (calculatorState == 0) {
-                updateTxtPrevious("1/(0)");
-                txt_output.Text = "Cannot divide by zero"; 
-                calculatorState = -1;
-            }
-            else if (calculatorState == 1) {
-                updateTxtPrevious(String.Format("1/({0})", currentEntry));
-                txt_output.Text = Math.Pow(double.Parse(currentEntry.ToString()), -1).ToString();
-                calculatorState = 5;
-            }
-
+            CalcSpecial("1/", -1);
         }
 
         private void btn_sqrt_Click(object sender, EventArgs e) {
-            if (calculatorState == 0) {
-                updateTxtPrevious("sqrt(0)");
-                calculatorState = 5;
-            }
-            else if (calculatorState == 1) {
-                updateTxtPrevious(String.Format("sqr({0})", currentEntry));
-                txt_output.Text = Math.Sqrt(double.Parse(currentEntry.ToString())).ToString();
-                calculatorState = 5;
-            }
+            CalcSpecial("sqrt", (float)0.5);
         }
 
         private void btn_square_Click(object sender, EventArgs e) {
-            if (calculatorState == 0) {
-                updateTxtPrevious("sqr(0)");
-                calculatorState = 5;
-            }
-            else if (calculatorState == 1) {
-                updateTxtPrevious(String.Format("sqr({0})", currentEntry));
-                txt_output.Text = Math.Pow(double.Parse(currentEntry.ToString()), 2).ToString();
-                calculatorState = 5;
-            }
-            else if (calculatorState == 2) {
-                updateTxtPrevious(String.Format("{0} {1} sqr({2})", leftOperand, operMap[oper], txt_output.Text));
-                txt_output.Text = Math.Pow((double)leftOperand, 2).ToString();
-                calculatorState = 6;
-            }
-            else if (calculatorState == 3) {
-                updateTxtPrevious(String.Format("{0} {1} sqr({2})", leftOperand, operMap[oper], txt_output.Text));
-                txt_output.Text = Math.Pow(double.Parse(currentEntry.ToString()), 2).ToString();
-                calculatorState = 6;
-            }
-            else if (calculatorState == 4) {
-                updateTxtPrevious(String.Format("sqr({0})", previousOperation));
-                txt_output.Text = Math.Pow((double)previousOperation, 2).ToString();
-                leftOperand = null;
-                previousOperation = null;
-                rightOperand = null;
-                oper = null;
-                currentEntry.Clear();
-                calculatorState = 5;
-            }
-            else if (calculatorState == 5) {
-                updateTxtPrevious(String.Format("{0} {1} sqr({2})", leftOperand, operMap[oper], txt_output.Text));
-                txt_output.Text = Math.Pow(double.Parse(currentEntry.ToString()), 2).ToString();
-                calculatorState = 6;
+            CalcSpecial("sqr", 2);
+        }
 
+        private void CalcSpecial (string name, float power) {
+            switch (calculatorState) {
+                case 0:
+                    updateTxtPrevious(String.Format("{0}(0)", name));
+                    if (power == -1) {
+                        txt_output.Text = "Cannot divide by zero"; 
+                        calculatorState = -1;
+                    }
+                    else {
+                        txt_output.Text = Math.Pow(0, power).ToString();
+                        calculatorState = 5;
+                    }
+                    break;
+                case 1:
+                    updateTxtPrevious(String.Format("{0}({1})", name, currentEntry));
+                    txt_output.Text = Math.Pow(double.Parse(currentEntry.ToString()), power).ToString();
+                    calculatorState = 5;
+                    break;
+                case 2:
+                    updateTxtPrevious(String.Format("{0} {1} {2}({3})", leftOperand, operMap[oper], name, txt_output.Text));
+                    txt_output.Text = Math.Pow((double)leftOperand, power).ToString();
+                    calculatorState = 6;
+                    break;
+                case 3:
+                    updateTxtPrevious(String.Format("{0} {1} {2}({3})", leftOperand, operMap[oper], name, txt_output.Text));
+                    txt_output.Text = Math.Pow(double.Parse(currentEntry.ToString()), power).ToString();
+                    calculatorState = 6;
+                    break;
+                case 4:
+                    updateTxtPrevious(String.Format("{0}({1})", name, previousOperation));
+                    txt_output.Text = Math.Pow((double)previousOperation, power).ToString();
+                    leftOperand = null;
+                    previousOperation = null;
+                    rightOperand = null;
+                    oper = null;
+                    currentEntry.Clear();
+                    calculatorState = 5;
+                    break;
+                case 5:
+                    updateTxtPrevious(String.Format("{0}({1})", name, txt_output.Text));
+                    txt_output.Text = Math.Pow(double.Parse(txt_output.Text), power).ToString();
+                    calculatorState = 5;
+                    break;
+                case 6:
+                    updateTxtPrevious(String.Format("{0} {1} {2}({3})", leftOperand, operMap[oper], name, txt_output.Text));
+                    txt_output.Text = Math.Pow(double.Parse(txt_output.Text), power).ToString();
+                    calculatorState = 6;
+                    break;
             }
-            else if (calculatorState == 6) {
-
-            }
-
         }
 
         private void btn_power_Click(object sender, EventArgs e) {
