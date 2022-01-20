@@ -182,11 +182,13 @@ namespace MorgantiCalculator {
                 case 0:
                     previousOperation = 0;
                     updateTxtPrevious("0 =");
+                    AddHistory("0 = 0");
                     break;
                 case 1:
                     float currentVal = float.Parse(currentEntry.ToString());
                     previousOperation = currentVal;
                     updateTxtPrevious(previousOperation.ToString() + " =");
+                    AddHistory(String.Format("{0} = {0}", previousOperation));
                     break;
                 case 2:
                     rightOperand = leftOperand;
@@ -204,6 +206,7 @@ namespace MorgantiCalculator {
                     leftOperand = float.Parse(txt_output.Text);
                     previousOperation = leftOperand;
                     updateTxtPrevious(txt_prev.Text + " =");
+                    AddHistory(txt_prev.Text + " " + previousOperation);
                     break;
                 case 6:
                     rightOperand = float.Parse(txt_output.Text);
@@ -251,6 +254,10 @@ namespace MorgantiCalculator {
         private void btn_add_Click(object sender, EventArgs e) {
             CalcOperator(0);
         }
+        
+        private void btn_history_Click(object sender, EventArgs e) {
+            txt_history.Visible = !txt_history.Visible;
+        }
         #endregion
 
         private void DoEquals () {
@@ -260,7 +267,8 @@ namespace MorgantiCalculator {
             }
             else {
                 previousOperation = result;
-                updateTxtPrevious (String.Format("{0} {1} {2} =", leftOperand.ToString(), operMap[oper], rightOperand.ToString()));
+                updateTxtPrevious (String.Format("{0} {1} {2} =", leftOperand, operMap[oper], rightOperand));
+                AddHistory(txt_prev.Text + " " + result);
                 txt_output.Text = result.ToString();
                 leftOperand = result;
             }
@@ -357,13 +365,16 @@ namespace MorgantiCalculator {
                     retVal = DoOperator();
                     if (retVal == null)
                         SetErrorState("Invalid Input");
-                    leftOperand = retVal;
-                    rightOperand = null;
-                    oper = opCode;
+                    else {
+                        AddHistory(String.Format("{0} {1} = {2}", txt_prev.Text, rightOperand, retVal));
+                        leftOperand = retVal;
+                        rightOperand = null;
+                        oper = opCode;
 
-                    currentEntry.Clear();
-                    txt_output.Text = retVal.ToString();
-                    calculatorState = 2;
+                        currentEntry.Clear();
+                        txt_output.Text = retVal.ToString();
+                        calculatorState = 2;
+                    }
                     break;
                 case 4:
                     if (oper == null) 
@@ -384,12 +395,15 @@ namespace MorgantiCalculator {
                     retVal = DoOperator();
                     if (retVal == null)
                         SetErrorState("Invalid Input");
-                    leftOperand = retVal;
-                    oper = opCode;
+                    else {
+                        AddHistory(txt_prev.Text);
+                        leftOperand = retVal;
+                        oper = opCode;
 
-                    currentEntry.Clear();
-                    txt_output.Text = retVal.ToString();
-                    calculatorState = 2;
+                        currentEntry.Clear();
+                        txt_output.Text = retVal.ToString();
+                        calculatorState = 2;
+                    }
                     break;
             }
             if (calculatorState != -1) {
@@ -447,6 +461,7 @@ namespace MorgantiCalculator {
         private void addInput(char numb) {
             if (calculatorState == 4) {
                 currentEntry.Clear();
+                calculatorState = 0;
             }
             if (currentEntry.Length < 16) {
                 currentEntry.Append(numb);
@@ -493,5 +508,10 @@ namespace MorgantiCalculator {
             txt_output.Text = err;
             calculatorState = -1;
         }
+
+        private void AddHistory(string hist) {
+            txt_history.Text += hist + '\n';
+        }
+
     }
 }

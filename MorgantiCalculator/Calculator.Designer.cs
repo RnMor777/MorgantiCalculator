@@ -55,6 +55,7 @@
             this.but_neg = new System.Windows.Forms.Button();
             this.txt_prev = new System.Windows.Forms.TextBox();
             this.btn_history = new System.Windows.Forms.Button();
+            this.txt_history = new System.Windows.Forms.RichTextBox();
             this.SuspendLayout();
             // 
             // txt_output
@@ -370,12 +371,26 @@
             this.btn_history.Size = new System.Drawing.Size(37, 37);
             this.btn_history.TabIndex = 26;
             this.btn_history.UseVisualStyleBackColor = false;
+            this.btn_history.Click += new System.EventHandler(this.btn_history_Click);
+            // 
+            // txt_history
+            // 
+            this.txt_history.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txt_history.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txt_history.Location = new System.Drawing.Point(35, 88);
+            this.txt_history.Name = "txt_history";
+            this.txt_history.ReadOnly = true;
+            this.txt_history.Size = new System.Drawing.Size(270, 327);
+            this.txt_history.TabIndex = 27;
+            this.txt_history.Text = "";
+            this.txt_history.Visible = false;
             // 
             // Calculator
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(371, 437);
+            this.Controls.Add(this.txt_history);
             this.Controls.Add(this.btn_history);
             this.Controls.Add(this.txt_prev);
             this.Controls.Add(this.btn_equal);
@@ -441,6 +456,7 @@
         private System.Windows.Forms.Button but_neg;
         private System.Windows.Forms.TextBox txt_prev;
         private System.Windows.Forms.Button btn_history;
+        private System.Windows.Forms.RichTextBox txt_history;
     }
 }
 
