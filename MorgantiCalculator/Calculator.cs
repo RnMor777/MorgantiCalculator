@@ -28,315 +28,7 @@ namespace MorgantiCalculator {
             KeyPress += Calculator_KeyPress;
         }
 
-        private void btn_ce_Click(object sender, EventArgs e) {
-            if (calculatorState == -1) {
-                resetAll();
-            }
-            if (calculatorState == 1 || calculatorState == 3) {
-                resetOutput();
-            }
-            else if (calculatorState == 4 || calculatorState == 5) { 
-                resetAll();
-            }
-            else if (calculatorState == 6) {
-                resetOutput();
-                updateTxtPrevious(String.Format("{0} {1}", leftOperand, operMap[oper]));
-            }
-        }
-
-        private void btn_c_Click(object sender, EventArgs e) {
-            resetAll();
-        }
-
-        private void btn_del_Click(object sender, EventArgs e) {
-            if (calculatorState == -1) {
-                resetAll();
-            }
-            if (calculatorState == 1) { 
-                if (currentEntry.Length <= 1) {
-                    resetAll();
-                }
-                else {
-                    currentEntry.Remove(currentEntry.Length -1, 1);
-                    updateOutput();
-                }
-            }
-            else if (calculatorState == 3) {
-                if (currentEntry.Length <= 1) {
-                    resetOutput();
-                }
-                else {
-                    currentEntry.Remove(currentEntry.Length -1, 1);
-                    updateOutput();
-                }
-            }
-            else if (calculatorState == 4) {
-                // clear the top bar, but keep the result in the bottom bar and value
-
-            }
-            if (currentEntry.Length == 1 && currentEntry[0] == '-') {
-                currentEntry.Clear();
-                updateOutput();
-            }
-        }
-
-        private void but_neg_Click(object sender, EventArgs e) {
-            if (calculatorState == 1 || calculatorState == 3) {
-                if (currentEntry.Length > 0 && currentEntry.ToString() != "0") {
-                    if (currentEntry[0] == '-') 
-                        currentEntry.Remove (0, 1);
-                    else 
-                        currentEntry.Insert(0, '-');
-                    updateOutput();
-                }
-            }
-            else if (calculatorState == 2) {
-                currentEntry.Clear();
-                 
-
-                calculatorState = 6;
-                
-
-                // take leftOperator and make it negative
-            }
-            else if (calculatorState == 4) {
-                // restore previous state and make it negative
-            }
-        }
-
-        private void btn_dec_Click(object sender, EventArgs e) {
-            if (calculatorState < 4) {
-                if (currentEntry.Length == 0) {
-                    addInput('0');
-                    addInput('.');
-                }
-                else if (!currentEntry.ToString().Contains('.')) {
-                    addInput('.');
-                }
-            }
-            if (calculatorState == 4) {
-                resetAll();
-                btn_dec_Click(sender, e);
-            }
-        }
-
-        private void btn_equal_Click(object sender, EventArgs e) {
-
-            if (calculatorState == 0) {
-                previousOperation = 0;
-                updateTxtPrevious("0 =");
-            }
-            else if (calculatorState == 1) {
-                float currentVal = float.Parse(currentEntry.ToString());
-                previousOperation = currentVal;
-                updateTxtPrevious(previousOperation.ToString() + " =");
-            }
-            else if (calculatorState == 2) {
-                rightOperand = leftOperand;
-                DoEquals();
-            }
-            else if (calculatorState == 3) {
-                rightOperand = float.Parse(currentEntry.ToString());
-                DoEquals();
-            }
-            else if (calculatorState == 4) {
-                if (oper != null) {
-                    DoEquals();
-                }
-            }
-            else if (calculatorState == 5) {
-                leftOperand = float.Parse(txt_output.Text);
-                previousOperation = leftOperand;
-                updateTxtPrevious(txt_prev.Text + " =");
-            }
-            else if (calculatorState == 6) {
-
-            }
-             
-            if (calculatorState != -1) {
-                calculatorState = 4;
-            }
-        }
-
-        private void DoEquals () {
-            // checks for validity
-            float? result = DoOperator();
-            if (result == null) {
-                if (rightOperand != 0 || oper != 3) {
-                    txt_output.Text = "Invalid Input";
-                }
-            }
-            else {
-                previousOperation = result;
-                updateTxtPrevious (String.Format("{0} {1} {2} =", leftOperand.ToString(), operMap[oper], rightOperand.ToString()));
-                txt_output.Text = result.ToString();
-                leftOperand = result;
-            }
-        }
-
-        private void btn_inv_Click(object sender, EventArgs e) {
-            CalcSpecial("1/", -1);
-        }
-
-        private void btn_sqrt_Click(object sender, EventArgs e) {
-            CalcSpecial("sqrt", (float)0.5);
-        }
-
-        private void btn_square_Click(object sender, EventArgs e) {
-            CalcSpecial("sqr", 2);
-        }
-
-        private void CalcSpecial (string name, float power) {
-            switch (calculatorState) {
-                case 0:
-                    updateTxtPrevious(String.Format("{0}(0)", name));
-                    if (power == -1) {
-                        txt_output.Text = "Cannot divide by zero"; 
-                        calculatorState = -1;
-                    }
-                    else {
-                        txt_output.Text = Math.Pow(0, power).ToString();
-                        calculatorState = 5;
-                    }
-                    break;
-                case 1:
-                    updateTxtPrevious(String.Format("{0}({1})", name, currentEntry));
-                    txt_output.Text = Math.Pow(double.Parse(currentEntry.ToString()), power).ToString();
-                    calculatorState = 5;
-                    break;
-                case 2:
-                    updateTxtPrevious(String.Format("{0} {1} {2}({3})", leftOperand, operMap[oper], name, txt_output.Text));
-                    txt_output.Text = Math.Pow((double)leftOperand, power).ToString();
-                    calculatorState = 6;
-                    break;
-                case 3:
-                    updateTxtPrevious(String.Format("{0} {1} {2}({3})", leftOperand, operMap[oper], name, txt_output.Text));
-                    txt_output.Text = Math.Pow(double.Parse(currentEntry.ToString()), power).ToString();
-                    calculatorState = 6;
-                    break;
-                case 4:
-                    updateTxtPrevious(String.Format("{0}({1})", name, previousOperation));
-                    txt_output.Text = Math.Pow((double)previousOperation, power).ToString();
-                    leftOperand = null;
-                    previousOperation = null;
-                    rightOperand = null;
-                    oper = null;
-                    currentEntry.Clear();
-                    calculatorState = 5;
-                    break;
-                case 5:
-                    updateTxtPrevious(String.Format("{0}({1})", name, txt_output.Text));
-                    txt_output.Text = Math.Pow(double.Parse(txt_output.Text), power).ToString();
-                    calculatorState = 5;
-                    break;
-                case 6:
-                    updateTxtPrevious(String.Format("{0} {1} {2}({3})", leftOperand, operMap[oper], name, txt_output.Text));
-                    txt_output.Text = Math.Pow(double.Parse(txt_output.Text), power).ToString();
-                    calculatorState = 6;
-                    break;
-            }
-        }
-
-        private void btn_power_Click(object sender, EventArgs e) {
-            ExecuteOperator(4);
-        }
-
-        private void btn_div_Click(object sender, EventArgs e) {
-            ExecuteOperator(3);
-        }
-
-        private void btn_mult_Click(object sender, EventArgs e) {
-            ExecuteOperator(2);
-        }
-
-        private void btn_sub_Click(object sender, EventArgs e) {
-            ExecuteOperator(1);
-        }
-
-        private void btn_add_Click(object sender, EventArgs e) {
-            ExecuteOperator(0);
-        }
-
-        private void ExecuteOperator(int opCode) {
-            if (currentEntry.Length > 0 && currentEntry[currentEntry.Length-1] == '.') {
-                btn_del_Click(new object(), new EventArgs());
-            }
-
-            if (calculatorState == 0) {
-                oper = opCode;
-                leftOperand = 0;
-                calculatorState = 2;
-            }
-            else if (calculatorState == 1) {
-                oper = opCode;
-                leftOperand = float.Parse(currentEntry.ToString());
-                currentEntry.Clear();
-                calculatorState = 2;
-            }
-            else if (calculatorState == 2) {
-                oper = opCode;
-            }
-            else if (calculatorState == 3) {
-                rightOperand = float.Parse(currentEntry.ToString());
-
-                float? retVal = DoOperator();
-
-                leftOperand = retVal;
-                rightOperand = null;
-                oper = opCode;
-
-                currentEntry.Clear();
-                txt_output.Text = retVal.ToString();
-                calculatorState = 2;
-            }
-            else if (calculatorState == 4) {
-                if (oper == null) {
-                    leftOperand = previousOperation;
-                }
-                previousOperation = null;
-                rightOperand = null;
-                currentEntry.Clear();
-                calculatorState = 2;
-            }
-
-            updateTxtPrevious(leftOperand.ToString() + " " + operMap[opCode]);
-            oper = opCode;
-        }
-
-        float? DoOperator () {
-            float? retVal = null;
-
-            switch (oper) {
-                case 0:
-                    retVal = leftOperand + rightOperand;
-                    break;
-                case 1:
-                    retVal = leftOperand - rightOperand;
-                    break;
-                case 2:
-                    retVal = leftOperand * rightOperand;
-                    break;
-                case 3:
-                    if (rightOperand == 0) {
-                        txt_output.Text = "Cannot divide by 0";
-                        txt_prev.Text = "";
-                        leftOperand = null;
-                        rightOperand = null;
-                        oper = null;
-                        currentEntry.Clear();
-                    }
-                    else {
-                        retVal = leftOperand / rightOperand;
-                    }
-                    break;
-                case 4:
-                    retVal = (float?)Math.Pow((double)leftOperand, (double)rightOperand);
-                    break;
-            }
-            return retVal;
-        }
-
-        #region Numbered Button Click Events
+        #region Button Presses
         private void btn_9_Click(object sender, EventArgs e) {
             addInput('9');
         }
@@ -381,7 +73,353 @@ namespace MorgantiCalculator {
                 addInput('0');
             }
         }
+
+        private void btn_ce_Click(object sender, EventArgs e) {
+            switch (calculatorState) {
+                case -1:
+                    resetAll();
+                    break;
+                case 1:
+                    resetOutput();
+                    break;
+                case 3:
+                    resetOutput();
+                    break;
+                case 4:
+                    resetAll();
+                    break;
+                case 5:
+                    resetAll();
+                    break;
+                case 6:
+                    resetOutput();
+                    updateTxtPrevious(String.Format("{0} {1}", leftOperand, operMap[oper]));
+                    break;
+            }
+        }
+
+        private void btn_c_Click(object sender, EventArgs e) {
+            resetAll();
+        }
+
+        private void btn_del_Click(object sender, EventArgs e) {
+            switch (calculatorState) {
+                case -1:
+                    resetAll();
+                    break;
+                case 1:
+                    if (currentEntry.Length <= 1) {
+                        resetAll();
+                    }
+                    else {
+                        currentEntry.Remove(currentEntry.Length -1, 1);
+                        updateOutput();
+                    }
+                    break;
+                case 3:
+                    if (currentEntry.Length <= 1) {
+                        resetOutput();
+                        calculatorState = 2;
+                    }
+                    else {
+                        currentEntry.Remove(currentEntry.Length -1, 1);
+                        updateOutput();
+                    }
+                    break;
+                case 4:
+                    resetAll();
+                    break;
+            }
+
+            if (currentEntry.Length == 1 && currentEntry[0] == '-' || currentEntry.ToString() == "-0") {
+                currentEntry.Clear();
+                updateOutput();
+            }
+        }
+
+        private void but_neg_Click(object sender, EventArgs e) {
+            if (calculatorState == 1 || calculatorState == 3) {
+                if (currentEntry.Length > 0 && currentEntry.ToString() != "0") {
+                    if (currentEntry[0] == '-') 
+                        currentEntry.Remove (0, 1);
+                    else 
+                        currentEntry.Insert(0, '-');
+                    updateOutput();
+                }
+            }
+            else if (calculatorState == 2) {
+                updateTxtPrevious(String.Format("{0} {1} negate({2})", leftOperand, operMap[oper], leftOperand));
+                currentEntry.Clear();
+                txt_output.Text = (-1 * leftOperand).ToString();
+                calculatorState = 6;
+            }
+            else if (calculatorState == 4) {
+                updateTxtPrevious(String.Format("negate({0})", previousOperation));
+                currentEntry.Clear();
+                txt_output.Text = (-1 * previousOperation).ToString();
+                calculatorState = 5;
+            }
+        }
+
+        private void btn_decimal_Click(object sender, EventArgs e) {
+            if (calculatorState < 4) {
+                if (currentEntry.Length == 0) {
+                    addInput('0');
+                    addInput('.');
+                }
+                else if (!currentEntry.ToString().Contains('.')) {
+                    addInput('.');
+                }
+            }
+            if (calculatorState == 4) {
+                resetAll();
+                btn_decimal_Click(sender, e);
+            }
+        }
+
+        private void btn_equal_Click(object sender, EventArgs e) {
+            switch (calculatorState) {
+                case 0:
+                    previousOperation = 0;
+                    updateTxtPrevious("0 =");
+                    break;
+                case 1:
+                    float currentVal = float.Parse(currentEntry.ToString());
+                    previousOperation = currentVal;
+                    updateTxtPrevious(previousOperation.ToString() + " =");
+                    break;
+                case 2:
+                    rightOperand = leftOperand;
+                    DoEquals();
+                    break;
+                case 3:
+                    rightOperand = float.Parse(currentEntry.ToString());
+                    DoEquals();
+                    break;
+                case 4:
+                    if (oper != null) 
+                        DoEquals();
+                    break;
+                case 5:
+                    leftOperand = float.Parse(txt_output.Text);
+                    previousOperation = leftOperand;
+                    updateTxtPrevious(txt_prev.Text + " =");
+                    break;
+                case 6:
+                    rightOperand = float.Parse(txt_output.Text);
+                    DoEquals();
+                    break;
+            }
+
+            if (calculatorState != -1) {
+                calculatorState = 4;
+            }
+        }
+
+        private void btn_inv_Click(object sender, EventArgs e) {
+            CalcSpecial("1/", -1);
+        }
+
+        private void btn_sqrt_Click(object sender, EventArgs e) {
+            if (txt_output.Text[0] != '-')
+                CalcSpecial("sqrt", (float)0.5);
+            else
+                SetErrorState("Invalid Input");
+                
+        }
+
+        private void btn_square_Click(object sender, EventArgs e) {
+            CalcSpecial("sqr", 2);
+        }
+
+        private void btn_power_Click(object sender, EventArgs e) {
+            CalcOperator(4);
+        }
+
+        private void btn_div_Click(object sender, EventArgs e) {
+            CalcOperator(3);
+        }
+
+        private void btn_mult_Click(object sender, EventArgs e) {
+            CalcOperator(2);
+        }
+
+        private void btn_sub_Click(object sender, EventArgs e) {
+            CalcOperator(1);
+        }
+
+        private void btn_add_Click(object sender, EventArgs e) {
+            CalcOperator(0);
+        }
         #endregion
+
+        private void DoEquals () {
+            float? result = DoOperator();
+            if (result == null) {
+                SetErrorState("Invalid Input");
+            }
+            else {
+                previousOperation = result;
+                updateTxtPrevious (String.Format("{0} {1} {2} =", leftOperand.ToString(), operMap[oper], rightOperand.ToString()));
+                txt_output.Text = result.ToString();
+                leftOperand = result;
+            }
+        }
+
+        private void CalcSpecial (string name, float power) {
+            switch (calculatorState) {
+                case 0:
+                    updateTxtPrevious(String.Format("{0}(0)", name));
+                    if (power == -1) {
+                        SetErrorState("Cannot divide by zero");
+                    }
+                    else {
+                        txt_output.Text = Math.Pow(0, power).ToString();
+                        calculatorState = 5;
+                    }
+                    break;
+                case 1:
+                    updateTxtPrevious(String.Format("{0}({1})", name, currentEntry));
+                    txt_output.Text = Math.Pow(double.Parse(currentEntry.ToString()), power).ToString();
+                    calculatorState = 5;
+                    break;
+                case 2:
+                    if (leftOperand == 0 && power == -1)
+                        SetErrorState("Cannot divide by zero");
+                    else {
+                        updateTxtPrevious(String.Format("{0} {1} {2}({3})", leftOperand, operMap[oper], name, leftOperand));
+                        txt_output.Text = Math.Pow((double)leftOperand, power).ToString();
+                        calculatorState = 6;
+                    }
+                    break;
+                case 3:
+                    if (currentEntry.ToString() == "0" && power == -1)
+                        SetErrorState("Cannot divide by zero");
+                    else {
+                        updateTxtPrevious(String.Format("{0} {1} {2}({3})", leftOperand, operMap[oper], name, txt_output.Text));
+                        txt_output.Text = Math.Pow(double.Parse(currentEntry.ToString()), power).ToString();
+                        calculatorState = 6;
+                    }
+                    break;
+                case 4:
+                    if (previousOperation == 0 && power == -1)
+                        SetErrorState("Cannot divide by zero");
+                    else {
+                        updateTxtPrevious(String.Format("{0}({1})", name, previousOperation));
+                        txt_output.Text = Math.Pow((double)previousOperation, power).ToString();
+                        leftOperand = null;
+                        previousOperation = null;
+                        rightOperand = null;
+                        oper = null;
+                        currentEntry.Clear();
+                        calculatorState = 5;
+                    }
+                    break;
+                case 5:
+                    updateTxtPrevious(String.Format("{0}({1})", name, txt_output.Text));
+                    txt_output.Text = Math.Pow(double.Parse(txt_output.Text), power).ToString();
+                    calculatorState = 5;
+                    break;
+                case 6:
+                    updateTxtPrevious(String.Format("{0} {1} {2}({3})", leftOperand, operMap[oper], name, txt_output.Text));
+                    txt_output.Text = Math.Pow(double.Parse(txt_output.Text), power).ToString();
+                    calculatorState = 6;
+                    break;
+            }
+        }
+
+
+
+        private void CalcOperator(int opCode) {
+            if (currentEntry.Length > 0 && currentEntry[currentEntry.Length-1] == '.') {
+                btn_del_Click(new object(), new EventArgs());
+            }
+
+            float? retVal;
+            switch (calculatorState) {
+                case 0:
+                    oper = opCode;
+                    leftOperand = 0;
+                    calculatorState = 2;
+                    break;
+                case 1:
+                    oper = opCode;
+                    leftOperand = float.Parse(currentEntry.ToString());
+                    currentEntry.Clear();
+                    calculatorState = 2;
+                    break;
+                case 2:
+                    oper = opCode;
+                    break;
+                case 3:
+                    rightOperand = float.Parse(currentEntry.ToString());
+
+                    retVal = DoOperator();
+                    if (retVal == null)
+                        SetErrorState("Invalid Input");
+                    leftOperand = retVal;
+                    rightOperand = null;
+                    oper = opCode;
+
+                    currentEntry.Clear();
+                    txt_output.Text = retVal.ToString();
+                    calculatorState = 2;
+                    break;
+                case 4:
+                    if (oper == null) 
+                        leftOperand = previousOperation;
+                    previousOperation = null;
+                    rightOperand = null;
+                    currentEntry.Clear();
+                    calculatorState = 2;
+                    break;
+                case 5:
+                    leftOperand = float.Parse(txt_output.Text);
+                    calculatorState = 2;
+                    currentEntry.Clear();
+                    break;
+                case 6:
+                    rightOperand = float.Parse(txt_output.Text);
+
+                    retVal = DoOperator();
+                    if (retVal == null)
+                        SetErrorState("Invalid Input");
+                    leftOperand = retVal;
+                    oper = opCode;
+
+                    currentEntry.Clear();
+                    txt_output.Text = retVal.ToString();
+                    calculatorState = 2;
+                    break;
+            }
+            if (calculatorState != -1) {
+                updateTxtPrevious(leftOperand.ToString() + " " + operMap[opCode]);
+                oper = opCode;
+            }
+        }
+
+        float? DoOperator () {
+            float? retVal = null;
+
+            switch (oper) {
+                case 0:
+                    retVal = leftOperand + rightOperand;
+                    break;
+                case 1:
+                    retVal = leftOperand - rightOperand;
+                    break;
+                case 2:
+                    retVal = leftOperand * rightOperand;
+                    break;
+                case 3:
+                    retVal = rightOperand == 0 ? null : leftOperand / rightOperand;
+                    break;
+                case 4:
+                    retVal = (float?)Math.Pow((double)leftOperand, (double)rightOperand);
+                    break;
+            }
+            return retVal;
+        }
 
         void Calculator_KeyPress(object sender, KeyPressEventArgs e) {
             if (e.KeyChar == '0')
@@ -399,7 +437,7 @@ namespace MorgantiCalculator {
             else if (e.KeyChar == '^')
                 btn_power_Click(sender, e);
             else if (e.KeyChar == '.')
-                btn_dec_Click(sender, e);
+                btn_decimal_Click(sender, e);
             else if ((int)e.KeyChar == 8)
                 btn_del_Click(sender, e);
             else if ((int)e.KeyChar == 27)
@@ -412,10 +450,12 @@ namespace MorgantiCalculator {
             }
             if (currentEntry.Length < 16) {
                 currentEntry.Append(numb);
-                
-                if (calculatorState == 0) 
+
+                if (calculatorState == -1)
                     calculatorState = 1;
-                if (calculatorState == 2)
+                else if (calculatorState == 0) 
+                    calculatorState = 1;
+                else if (calculatorState == 2)
                     calculatorState = 3;
 
                 updateOutput();
@@ -447,6 +487,11 @@ namespace MorgantiCalculator {
             txt_output.Text = "0";
             calculatorState = 0;
             currentEntry.Clear();
+        }
+
+        private void SetErrorState(string err) {
+            txt_output.Text = err;
+            calculatorState = -1;
         }
     }
 }
