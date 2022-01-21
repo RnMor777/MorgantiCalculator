@@ -10,6 +10,7 @@ using System.Windows.Forms;
 
 namespace MorgantiCalculator { 
     public partial class Calculator : Form { 
+        // declare variables
         float? leftOperand = null;
         float? rightOperand = null;
         float? previousOperation = null;
@@ -19,10 +20,12 @@ namespace MorgantiCalculator {
 
         StringBuilder currentEntry = new StringBuilder();
 
+        // used to create the calculator
         public Calculator() {
             InitializeComponent();
         }
 
+        // used when the calualtor loads
         private void Calculator_Load(object sender, EventArgs e) {
             resetOutput();
             KeyPress += Calculator_KeyPress;
@@ -66,6 +69,7 @@ namespace MorgantiCalculator {
         }
 
         private void btn_0_Click(object sender, EventArgs e) {
+            // will look to see if the user is trying to enter more than one 0 in the front
             if (leftOperand != null && currentEntry.Length == 0) {
                 addInput('0');
             }
