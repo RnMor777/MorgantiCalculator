@@ -15,10 +15,15 @@ namespace MorgantiCalculator {
         float? rightOperand = null;
         float? previousOperation = null;
         int? oper = null;
-        int calculatorState = 0;
         readonly Dictionary<int?, char> operMap = new Dictionary<int?, char>() {{0,'+'}, {1,'-'}, {2,'×'}, {3, '÷' }, {4,'^'}, {5,'='}}; 
-
         StringBuilder currentEntry = new StringBuilder();
+
+        // states: -1-error state, 0-nothing, 1-entering input first time
+        //         2-pressed a normal operator, 3-entering input second time, 4-pressed equals
+        //         5-special operation like 1\x, sqrt, etc. in the left argument
+        //         6-special operation in the right argument
+        int calculatorState = 0;
+
 
         // used to create the calculator
         public Calculator() {
@@ -79,6 +84,7 @@ namespace MorgantiCalculator {
         }
 
         private void btn_ce_Click(object sender, EventArgs e) {
+            // runs the ce operator depending on the current state of the calculator
             switch (calculatorState) {
                 case -1:
                     resetAll();
@@ -103,15 +109,19 @@ namespace MorgantiCalculator {
         }
 
         private void btn_c_Click(object sender, EventArgs e) {
+            // The clear button will always just reset all
             resetAll();
         }
 
         private void btn_del_Click(object sender, EventArgs e) {
+            // switch resulting action depending on current state
             switch (calculatorState) {
                 case -1:
+                    // resets everything
                     resetAll();
                     break;
                 case 1:
+                    // will either reset if the user cleared everything or delete the last character
                     if (currentEntry.Length <= 1) {
                         resetAll();
                     }
@@ -121,6 +131,7 @@ namespace MorgantiCalculator {
                     }
                     break;
                 case 3:
+                    // will either reset to state 2 or delete the last character
                     if (currentEntry.Length <= 1) {
                         resetOutput();
                         calculatorState = 2;
@@ -131,10 +142,12 @@ namespace MorgantiCalculator {
                     }
                     break;
                 case 4:
+                    // resets all
                     resetAll();
                     break;
             }
 
+            // removes the negative sign if it's the only character or if the string is -0
             if (currentEntry.Length == 1 && currentEntry[0] == '-' || currentEntry.ToString() == "-0") {
                 currentEntry.Clear();
                 updateOutput();
@@ -142,6 +155,7 @@ namespace MorgantiCalculator {
         }
 
         private void but_neg_Click(object sender, EventArgs e) {
+            // will add/remove a negative sign in the string
             if (calculatorState == 1 || calculatorState == 3) {
                 if (currentEntry.Length > 0 && currentEntry.ToString() != "0") {
                     if (currentEntry[0] == '-') 
@@ -151,12 +165,16 @@ namespace MorgantiCalculator {
                     updateOutput();
                 }
             }
+            // will negate the entered left argument and put that into the next field
+            // will result in the calculator being put in state 6
             else if (calculatorState == 2) {
                 updateTxtPrevious(String.Format("{0} {1} negate({2})", leftOperand, operMap[oper], leftOperand));
                 currentEntry.Clear();
                 txt_output.Text = (-1 * leftOperand).ToString();
                 calculatorState = 6;
             }
+            // will negate the previous found answer
+            // will put into state 5
             else if (calculatorState == 4) {
                 updateTxtPrevious(String.Format("negate({0})", previousOperation));
                 currentEntry.Clear();
@@ -166,6 +184,7 @@ namespace MorgantiCalculator {
         }
 
         private void btn_decimal_Click(object sender, EventArgs e) {
+            // when the decimal is pressed, either add 0. or just .
             if (calculatorState < 4) {
                 if (currentEntry.Length == 0) {
                     addInput('0');
@@ -175,6 +194,7 @@ namespace MorgantiCalculator {
                     addInput('.');
                 }
             }
+            // when pressed, reset the entire thing and then put 0.
             if (calculatorState == 4) {
                 resetAll();
                 btn_decimal_Click(sender, e);
@@ -182,42 +202,51 @@ namespace MorgantiCalculator {
         }
 
         private void btn_equal_Click(object sender, EventArgs e) {
+            // switch depending on calculator state
             switch (calculatorState) {
                 case 0:
+                    // displays as 0 = 0 since nothing has been done
                     previousOperation = 0;
                     updateTxtPrevious("0 =");
                     AddHistory("0 = 0");
                     break;
                 case 1:
+                    // displays at x = x since only a number has been entered
                     float currentVal = float.Parse(currentEntry.ToString());
                     previousOperation = currentVal;
                     updateTxtPrevious(previousOperation.ToString() + " =");
                     AddHistory(String.Format("{0} = {0}", previousOperation));
                     break;
                 case 2:
+                    // Run the DoEquals with the left and right arguments the same
                     rightOperand = leftOperand;
                     DoEquals();
                     break;
                 case 3:
+                    // Run the DoEquals with all entered arguments
                     rightOperand = float.Parse(currentEntry.ToString());
                     DoEquals();
                     break;
                 case 4:
+                    // if the user has previously pressed equals from state 3, then reexecute the same equals
                     if (oper != null) 
                         DoEquals();
                     break;
                 case 5:
+                    // display the result of the special operation done to put the calculator into state 5
                     leftOperand = float.Parse(txt_output.Text);
                     previousOperation = leftOperand;
                     updateTxtPrevious(txt_prev.Text + " =");
                     AddHistory(txt_prev.Text + " " + previousOperation);
                     break;
                 case 6:
+                    // display the result of the operation with the output from the special operation done
                     rightOperand = float.Parse(txt_output.Text);
                     DoEquals();
                     break;
             }
 
+            // if not in an error state then set the state to 4
             if (calculatorState != -1) {
                 calculatorState = 4;
             }
@@ -264,6 +293,7 @@ namespace MorgantiCalculator {
         }
         #endregion
 
+        // Will attempt to run the calculation and will either put into an error state or success state
         private void DoEquals () {
             float? result = DoOperator();
             if (result == null) {
@@ -278,6 +308,7 @@ namespace MorgantiCalculator {
             }
         }
 
+        // this is used to calculate the special operators like 1\x, sqr, sqrt, negate
         private void CalcSpecial (string name, float power) {
             switch (calculatorState) {
                 case 0:
@@ -340,8 +371,7 @@ namespace MorgantiCalculator {
             }
         }
 
-
-
+        // used when an operator is pressed
         private void CalcOperator(int opCode) {
             if (currentEntry.Length > 0 && currentEntry[currentEntry.Length-1] == '.') {
                 btn_del_Click(new object(), new EventArgs());
@@ -364,6 +394,7 @@ namespace MorgantiCalculator {
                     oper = opCode;
                     break;
                 case 3:
+                    // will run an equals operation and set the screen occordingly
                     rightOperand = float.Parse(currentEntry.ToString());
 
                     retVal = DoOperator();
@@ -394,6 +425,7 @@ namespace MorgantiCalculator {
                     currentEntry.Clear();
                     break;
                 case 6:
+                    // will run the operation and enter into a waiting state
                     rightOperand = float.Parse(txt_output.Text);
 
                     retVal = DoOperator();
@@ -416,6 +448,7 @@ namespace MorgantiCalculator {
             }
         }
 
+        // calculate the return value from the operation
         float? DoOperator () {
             float? retVal = null;
 
@@ -439,6 +472,7 @@ namespace MorgantiCalculator {
             return retVal;
         }
 
+        // maps key press events to button presses
         void Calculator_KeyPress(object sender, KeyPressEventArgs e) {
             if (e.KeyChar == '0')
                 btn_0_Click(sender, e);
@@ -462,11 +496,13 @@ namespace MorgantiCalculator {
                 btn_c_Click(sender, e);
         }
 
+        // adds the input to the string buffer
         private void addInput(char numb) {
             if (calculatorState == 4) {
                 currentEntry.Clear();
                 calculatorState = 0;
             }
+            // allows for up to 16 characters to be entered
             if (currentEntry.Length < 16) {
                 currentEntry.Append(numb);
 
@@ -481,6 +517,7 @@ namespace MorgantiCalculator {
             }
         }
 
+        // updates the output text box
         private void updateOutput() {
             txt_output.Text = currentEntry.ToString();
             if (currentEntry.Length == 0) {
@@ -488,15 +525,18 @@ namespace MorgantiCalculator {
             }
         }
 
+        // updates the previous text box with string txt
         private void updateTxtPrevious (string txt) {
             txt_prev.Text = txt;
         }
 
+        // resets the output
         private void resetOutput() {
             txt_output.Text = "0";
             currentEntry.Clear();
         }
 
+        // resets all variables
         private void resetAll () {
             previousOperation = null;
             leftOperand = null;
@@ -508,14 +548,15 @@ namespace MorgantiCalculator {
             currentEntry.Clear();
         }
 
+        // sets the error state
         private void SetErrorState(string err) {
             txt_output.Text = err;
             calculatorState = -1;
         }
 
+        // saves the history to the rich text field
         private void AddHistory(string hist) {
             txt_history.Text += hist + '\n';
         }
-
     }
 }
