@@ -10,6 +10,7 @@ using System.Windows.Forms;
 
 namespace MorgantiCalculator { 
     public partial class Calculator : Form { 
+
         // declare variables
         float? leftOperand = null;
         float? rightOperand = null;
