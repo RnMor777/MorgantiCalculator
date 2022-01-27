@@ -476,7 +476,7 @@ namespace MorgantiCalculator {
         void Calculator_KeyPress(object sender, KeyPressEventArgs e) {
             if (e.KeyChar == '0')
                 btn_0_Click(sender, e);
-            else if ((int)e.KeyChar > 48 && (int)e.KeyChar < 58)
+            else if (e.KeyChar >= '1' && e.KeyChar <= '9')
                 addInput(e.KeyChar);
             else if (e.KeyChar == '+')
                 btn_add_Click(sender, e);
@@ -490,6 +490,10 @@ namespace MorgantiCalculator {
                 btn_power_Click(sender, e);
             else if (e.KeyChar == '.')
                 btn_decimal_Click(sender, e);
+            else if (e.KeyChar == '=')
+                btn_equal_Click(sender, e);
+            else if (e.KeyChar == 'c')
+                btn_c_Click(sender, e);
             else if ((int)e.KeyChar == 8)
                 btn_del_Click(sender, e);
             else if ((int)e.KeyChar == 27)
