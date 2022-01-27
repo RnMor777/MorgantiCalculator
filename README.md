@@ -4,6 +4,7 @@ A C# Calculator built on windows forms for CSC 260 - Assignment 1
 I based this program off of a state diagram. The calculator uses 7 total state and performs operations based on the current state
 
 States:
+
 -1 - Error state
 
 0 - Ready state; nothing has been done to the calculator
